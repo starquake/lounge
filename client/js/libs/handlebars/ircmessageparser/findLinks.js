@@ -16,7 +16,7 @@ const commonSchemes = [
 ];
 
 function findLinks(text) {
-	let result = [];
+	const result = [];
 
 	// URI.withinString() identifies URIs within text, e.g. to translate them to
 	// <a>-Tags.

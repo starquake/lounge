@@ -422,9 +422,7 @@ Client.prototype.sort = function(data) {
 
 	switch (data.type) {
 	case "networks":
-		this.networks.sort((a, b) => {
-			return order.indexOf(a.id) - order.indexOf(b.id);
-		});
+		this.networks.sort((a, b) => order.indexOf(a.id) - order.indexOf(b.id));
 
 		// Sync order to connected clients
 		this.emit("sync_sort", {order: this.networks.map(obj => obj.id), type: data.type, target: data.target});
@@ -437,9 +435,7 @@ Client.prototype.sort = function(data) {
 			return;
 		}
 
-		network.channels.sort((a, b) => {
-			return order.indexOf(a.id) - order.indexOf(b.id);
-		});
+		network.channels.sort((a, b) => order.indexOf(a.id) - order.indexOf(b.id));
 
 		// Sync order to connected clients
 		this.emit("sync_sort", {order: network.channels.map(obj => obj.id), type: data.type, target: data.target});
@@ -539,7 +535,7 @@ Client.prototype.save = _.debounce(function SaveClient() {
 	}
 
 	const client = this;
-	let json = {};
+	const json = {};
 	json.networks = this.networks.map(n => n.export());
 	client.manager.updateUser(client.name, json);
 }, 1000, {maxWait: 10000});

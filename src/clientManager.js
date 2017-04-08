@@ -127,7 +127,7 @@ ClientManager.prototype.updateUser = function(name, opts, callback) {
 		return false;
 	}
 
-	let user = this.readUserConfig(name);
+	const user = this.readUserConfig(name);
 	const currentUser = JSON.stringify(user, null, "\t");
 	_.assign(user, opts);
 	const newUser = JSON.stringify(user, null, "\t");
@@ -137,7 +137,7 @@ ClientManager.prototype.updateUser = function(name, opts, callback) {
 		return callback ? callback() : true;
 	}
 
-	fs.writeFile(Helper.getUserConfigPath(name), newUser, (err) => {
+	fs.writeFile(Helper.getUserConfigPath(name), newUser, err => {
 		if (err) {
 			log.error("Failed to update user", err);
 		}

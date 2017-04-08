@@ -108,7 +108,7 @@ in ${config.public ? "public" : "private"} mode`);
 
 	manager = new ClientManager();
 
-	new Identification((identHandler) => {
+	new Identification(identHandler => {
 		manager.init(identHandler, sockets);
 	});
 };

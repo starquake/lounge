@@ -8,7 +8,7 @@ const merge = require("./ircmessageparser/merge");
 
 // Create an HTML `span` with styling information for a given fragment
 function createFragment(fragment) {
-	let classes = [];
+	const classes = [];
 	if (fragment.bold) {
 		classes.push("irc-bold");
 	}

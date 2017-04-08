@@ -476,7 +476,7 @@ $(function() {
 			$(container).empty();
 		}
 
-        // Check if date changed
+		// Check if date changed
 		var prevMsg = $(container.find(".msg")).last();
 		var prevMsgTime = new Date(prevMsg.attr("data-time"));
 		var msgTime = new Date(msg.attr("data-time"));
@@ -490,7 +490,7 @@ $(function() {
 			prevMsg.after(templates.date_marker({msgDate: msgTime}));
 		}
 
-        // Add message to the container
+		// Add message to the container
 		container
 			.append(msg)
 			.trigger("msg", [
@@ -1628,19 +1628,17 @@ $(function() {
 	// Only start opening socket.io connection after all events have been registered
 	socket.open();
 
-	window.addEventListener(
-		"popstate",
-		(e) => {
-			const {state} = e;
-			if (!state) {
-				return;
-			}
-			const {clickTarget} = state;
-			if (clickTarget) {
-				$(clickTarget).trigger("click", {
-					pushState: false
-				});
-			}
+	window.addEventListener("popstate", e => {
+		const {state} = e;
+		if (!state) {
+			return;
 		}
-	);
+
+		const {clickTarget} = state;
+		if (clickTarget) {
+			$(clickTarget).trigger("click", {
+				pushState: false
+			});
+		}
+	});
 });

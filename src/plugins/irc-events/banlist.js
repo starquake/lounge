@@ -36,7 +36,7 @@ module.exports = function(irc, network) {
 		chan.pushMessage(client,
 			new Msg({
 				type: Msg.Type.BANLIST,
-				bans: bans.map((data) => ({
+				bans: bans.map(data => ({
 					hostmask: data.banned,
 					banned_by: data.banned_by,
 					banned_at: data.banned_at * 1000

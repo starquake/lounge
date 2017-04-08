@@ -84,7 +84,6 @@ function parseStyle(text) {
 	// encountered since the previous styling character.
 	while (position < text.length) {
 		switch (text[position]) {
-
 		case RESET:
 			emitFragment();
 			resetStyle();
