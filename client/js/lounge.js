@@ -23,6 +23,15 @@ const constants = require("./constants");
 const storage = require("./localStorage");
 
 $(function() {
+	let processOnIdle;
+	if (window.requestIdleCallback) {
+		processOnIdle = callback => {
+			window.requestIdleCallback(callback, {timeout: 2000});
+		};
+	} else {
+		processOnIdle = callback => callback();
+	}
+
 	var sidebar = $("#sidebar, #footer");
 	var chat = $("#chat");
 
@@ -329,10 +338,9 @@ $(function() {
 		}
 
 		var msg = $(templates[template](data.msg));
-		var text = msg.find(".text");
 
 		if (template === "msg_action") {
-			text.html(templates.actions[type](data.msg));
+			msg.find(".text").html(templates.actions[type](data.msg));
 		}
 
 		if ((type === "message" || type === "action") && chan.hasClass("channel")) {
@@ -465,43 +473,96 @@ $(function() {
 		}
 	}
 
-	socket.on("msg", function(data) {
-		var msg = buildChatMessage(data);
-		var target = "#chan-" + data.chan;
-		var container = chat.find(target + " .messages");
+	const messageQueue = [];
 
-		if (data.msg.type === "channel_list" || data.msg.type === "ban_list") {
-			$(container).empty();
-		}
+	socket.on("msg", data => {
+		messageQueue.push(data);
 
-        // Check if date changed
-		var prevMsg = $(container.find(".msg")).last();
-		var prevMsgTime = new Date(prevMsg.attr("data-time"));
-		var msgTime = new Date(msg.attr("data-time"));
-
-		// It's the first message in a channel/query
-		if (prevMsg.length === 0) {
-			container.append(templates.date_marker({msgDate: msgTime}));
-		}
-
-		if (prevMsgTime.toDateString() !== msgTime.toDateString()) {
-			prevMsg.after(templates.date_marker({msgDate: msgTime}));
-		}
-
-        // Add message to the container
-		container
-			.append(msg)
-			.trigger("msg", [
-				target,
-				data
-			]);
-
-		if (data.msg.self) {
-			container
-				.find(".unread-marker")
-				.appendTo(container);
+		if (messageQueue.length === 1) {
+			processOnIdle(processReceivedMessages);
 		}
 	});
+
+	function processReceivedMessages() {
+		let target = null;
+		let channel;
+		let container;
+		let previousMessage;
+		let documentFragment;
+
+		const activeChannelId = chat.find(".chan.active").data("id");
+
+		// TODO: sorting too much?
+		messageQueue.sort((a, b) => {
+			if (a.chan === b.chan) {
+				return a.msg.id - b.msg.id;
+			}
+
+			// TODO: Prioritize active channel?
+
+			return a.chan - b.chan;
+		});
+
+		while (messageQueue[0] !== undefined) {
+			if (target !== null && target !== messageQueue[0].chan) {
+				processOnIdle(processReceivedMessages);
+				break;
+			}
+
+			const data = messageQueue.shift();
+			const msg = buildChatMessage(data);
+
+			if (target === null) {
+				target = data.chan;
+				channel = chat.find("#chan-" + target);
+				container = channel.find(".messages");
+
+				if (data.msg.type === "channel_list" || data.msg.type === "ban_list") {
+					container.empty();
+				}
+
+				documentFragment = $(document.createDocumentFragment());
+				previousMessage = container.find(".msg").last();
+			}
+
+			// Check if date changed
+			const prevMsgTime = new Date(previousMessage.attr("data-time"));
+			const msgTime = new Date(msg.attr("data-time"));
+
+			if (previousMessage.length === 0 || prevMsgTime.toDateString() !== msgTime.toDateString()) {
+				documentFragment.append(templates.date_marker({msgDate: msgTime}));
+			}
+
+			// Add message to the container
+			previousMessage = msg;
+			documentFragment.append(msg);
+
+			if (data.msg.self) {
+				let unreadMarker = container.find(".unread-marker") || documentFragment.find(".unread-marker");
+
+				unreadMarker.appendTo(documentFragment);
+			} else {
+				notifyChannelMessage("#chan-" + target, data);
+			}
+		}
+
+		if (container) {
+			container.append(documentFragment).trigger("msg.sticky");
+
+			// Message arrived in a non active channel, trim it to 100 messages
+			if (activeChannelId !== target && container.find(".msg").slice(0, -100).remove().length) {
+				channel.find(".show-more").addClass("show");
+
+				// Remove date-seperators that would otherwise
+				// be "stuck" at the top of the channel
+				channel.find(".date-marker-container").each(function() {
+					if ($(this).next().hasClass("date-marker-container")) {
+						$(this).remove();
+					}
+				});
+			}
+		}
+	}
 
 	socket.on("more", function(data) {
 		var documentFragment = buildChannelMessages(data.chan, data.messages);
@@ -1108,24 +1169,28 @@ $(function() {
 		container.html(templates.user_filtered({matches: result})).show();
 	});
 
-	chat.on("msg", ".messages", function(e, target, msg) {
+	let lastNotificationSoundPlay = 0;
+
+	function notifyChannelMessage(target, msg) {
 		var unread = msg.unread;
 		msg = msg.msg;
-
-		if (msg.self) {
-			return;
-		}
 
 		var button = sidebar.find(".chan[data-target='" + target + "']");
 		if (msg.highlight || (options.notifyAllMessages && msg.type === "message")) {
 			if (!document.hasFocus() || !$(target).hasClass("active")) {
-				if (options.notification) {
+				const time = Date.now();
+
+				if (options.notification && (time - lastNotificationSoundPlay) > 500) {
+					// Fixes "The play() request was interrupted by a call to pause()"
+					lastNotificationSoundPlay = time;
+
 					try {
 						pop.play();
 					} catch (exception) {
 						// On mobile, sounds can not be played without user interaction.
 					}
 				}
+
 				toggleNotificationMarkers(true);
 
 				if (options.desktopNotifications && Notification.permission === "granted") {
@@ -1177,7 +1242,7 @@ $(function() {
 		if (msg.highlight) {
 			badge.addClass("highlight");
 		}
-	});
+	}
 
 	chat.on("click", ".show-more-button", function() {
 		var self = $(this);
@@ -1398,23 +1463,6 @@ $(function() {
 			});
 		}
 	}());
-
-	setInterval(function() {
-		chat.find(".chan:not(.active)").each(function() {
-			var chan = $(this);
-			if (chan.find(".messages .msg").slice(0, -100).remove().length) {
-				chan.find(".show-more").addClass("show");
-
-				// Remove date-seperators that would otherwise be "stuck" at the top
-				// of the channel
-				chan.find(".date-marker-container").each(function() {
-					if ($(this).next().hasClass("date-marker-container")) {
-						$(this).remove();
-					}
-				});
-			}
-		});
-	}, 1000 * 10);
 
 	function clear() {
 		chat.find(".active")
