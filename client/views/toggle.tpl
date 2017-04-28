@@ -1,19 +1,11 @@
-{{#toggle}}
-<div class="toggle-content toggle-type-{{type}}">
-	{{#equal type "image"}}
-		<a href="{{link}}" target="_blank">
-			<img src="{{link}}">
-		</a>
+<a class="toggle-content toggle-type-{{type}}" href="{{link}}" target="_blank" rel="noopener">
+	{{#equal type "photo"}}
+		<img src="{{link}}" alt="{{head}}">
 	{{else}}
-		<a href="{{link}}" target="_blank">
-			{{#if thumb}}
-				<img src="{{thumb}}" class="thumb">
-			{{/if}}
-			<div class="head">{{head}}</div>
-			<div class="body">
-				{{body}}
-			</div>
-		</a>
+		{{#if thumb}}
+			<img src="{{thumb}}" class="thumb">
+		{{/if}}
+		<div class="head">{{head}}</div>
+		<div class="body">{{body}}</div>
 	{{/equal}}
-</div>
-{{/toggle}}
+</a>

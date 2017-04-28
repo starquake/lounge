@@ -259,6 +259,11 @@ $(function() {
 			target = "#chan-" + chat.find(".active").data("id");
 		}
 
+		// TODO: If a toggle failed to load, do not render it at all
+		if (type === "toggle" && data.msg.toggle === null) {
+			return;
+		}
+
 		var chan = chat.find(target);
 		var template = "msg";
 
@@ -568,20 +573,27 @@ $(function() {
 	});
 
 	socket.on("toggle", function(data) {
-		var toggle = $("#toggle-" + data.id);
-		toggle.parent().after(templates.toggle({toggle: data}));
-		switch (data.type) {
-		case "link":
-			if (options.links) {
-				toggle.click();
-			}
-			break;
+		const toggle = $("#toggle-" + data.id);
+		const parent = toggle.closest(".msg");
 
-		case "image":
+		if (data.toggle === null) {
+			parent.remove();
+			return;
+		}
+
+		parent.after(templates.toggle(data.toggle));
+
+		switch (data.toggle.type) {
+		case "photo":
 			if (options.thumbnails) {
 				toggle.click();
 			}
 			break;
+
+		default:
+			if (options.links) {
+				toggle.click();
+			}
 		}
 	});
 
@@ -1150,7 +1162,7 @@ $(function() {
 		var self = $(this);
 		var localChat = self.closest(".chat");
 		var bottom = localChat.isScrollBottom();
-		var content = self.parent().next(".toggle-content");
+		var content = self.closest(".msg").find(".toggle-content");
 		if (bottom && !content.hasClass("show")) {
 			var img = content.find("img");
 			if (img.length !== 0 && !img.width()) {
@@ -1163,6 +1175,11 @@ $(function() {
 		if (bottom) {
 			localChat.scrollBottom();
 		}
+	});
+
+	chat.on("click", ".toggle-type-photo", function() {
+		$(this).toggleClass("expand");
+		return false;
 	});
 
 	var forms = $("#sign-in, #connect, #change-password");

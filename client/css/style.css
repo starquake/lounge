@@ -1102,14 +1102,23 @@ kbd {
 	overflow: hidden;
 }
 
-#chat .toggle-content a {
-	color: inherit;
+#chat .toggle-content:hover {
+	opacity: 1;
+	background: #eee;
+}
+
+#chat .toggle-content:hover .head {
+	text-decoration: underline;
 }
 
 #chat .toggle-content img {
 	max-width: 100%;
 	max-height: 128px;
 	display: block;
+}
+
+#chat .toggle-content.expand img {
+	max-height: 100%;
 }
 
 #chat .toggle-content .thumb {
@@ -1135,6 +1144,10 @@ kbd {
 }
 
 #chat .toggle-content.show {
+	display: block;
+}
+
+#chat .toggle-type-photo.show {
 	display: inline-block !important;
 }
 

@@ -6,14 +6,14 @@
 		{{#if from}}
 		<span role="button" class="user {{colorClass from}}" data-name="{{from}}">{{mode}}{{from}}</span>
 		{{/if}}
+		{{#equal type "toggle"}}
+			<button id="toggle-{{id}}" class="toggle-button" aria-label="Toggle prefetched media">···</button>
+		{{/equal}}
 	</span>
 	{{#equal type "toggle"}}
 		<span class="text">
-			<div class="force-newline">
-				<button id="toggle-{{id}}" class="toggle-button" aria-label="Toggle prefetched media">···</button>
-			</div>
 			{{#if toggle}}
-				{{> toggle}}
+				{{> toggle toggle}}
 			{{/if}}
 		</span>
 	{{else}}
