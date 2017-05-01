@@ -238,6 +238,8 @@ $(function() {
 			storage.remove("token");
 		}
 
+		options.setApplicationServerKey(data.applicationServerKey);
+
 		$("body").removeClass("signed-out");
 		$("#loading").remove();
 		$("#sign-in").remove();
@@ -651,6 +653,7 @@ $(function() {
 	socket.on("names", renderChannelUsers);
 
 	var options = require("./options");
+	options.setSocket(socket);
 
 	var windows = $("#windows");
 
