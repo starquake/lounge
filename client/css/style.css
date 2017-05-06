@@ -1347,6 +1347,24 @@ kbd {
 	line-height: 1.8;
 }
 
+#changelog .container {
+	max-width: none;
+
+}
+
+.window#changelog h2 {
+	border-bottom: none;
+	margin: 0 0 30px;
+}
+
+.window#changelog h3 {
+	font-size: 20px;
+	border-bottom: 1px solid #7f8c8d;
+	color: #7f8c8d;
+	margin: 30px 0 10px;
+	padding-bottom: 7px;
+}
+
 #form {
 	background: #eee;
 	border-top: 1px solid #ddd;

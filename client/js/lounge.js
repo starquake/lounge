@@ -1293,6 +1293,20 @@ $(function() {
 		$(this).data("lastvalue", nick);
 	});
 
+	$("#view-changelog").one("click", function() {
+		$("#windows > .active")
+			.removeClass("active")
+			.find(".chat")
+			.unsticky();
+
+		$("#changelog")
+			.addClass("active")
+			.find("#changelog-text")
+			.load("/changelog");
+
+		return false;
+	});
+
 	(function HotkeysScope() {
 		Mousetrap.bind([
 			"pageup",

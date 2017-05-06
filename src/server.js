@@ -13,6 +13,7 @@ var dns = require("dns");
 var Helper = require("./helper");
 var ldap = require("ldapjs");
 var colors = require("colors/safe");
+const marked = require("marked");
 const Identification = require("./identification");
 
 var manager = null;
@@ -32,6 +33,7 @@ module.exports = function() {
 		.use(allRequests)
 		.use(index)
 		.use(express.static("client"))
+		.get("/changelog", renderChangelog)
 		.engine("html", expressHandlebars({extname: ".html"}))
 		.set("view engine", "html")
 		.set("views", path.join(__dirname, "..", "client"));
@@ -147,6 +149,24 @@ function index(req, res, next) {
 	res.setHeader("Content-Security-Policy", "default-src *; connect-src 'self' ws: wss:; style-src * 'unsafe-inline'; script-src 'self'; child-src 'self'; object-src 'none'; form-action 'none';");
 	res.setHeader("Referrer-Policy", "no-referrer");
 	res.render("index", data);
+}
+
+function renderChangelog(req, res) {
+	fs.readFile("CHANGELOG.md", "utf-8", function(err, text) {
+		if (err) {
+			res.send("Failed to read CHANGELOG.md file");
+			return;
+		}
+
+		text = /(## v[0-9][\s\S]*?)## v/.exec(text);
+
+		if (!text) {
+			res.send("Failed to find changelog entry");
+			return;
+		}
+
+		res.send(marked(text[1].trim()));
+	});
 }
 
 function init(socket, client) {

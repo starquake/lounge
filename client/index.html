@@ -368,6 +368,16 @@
 					</div>
 				</div>
 
+				<div id="changelog" class="window">
+					<div class="header">
+						<button class="lt" aria-label="Toggle channel list"></button>
+					</div>
+					<div class="container">
+						<h1 class="title">Changelog</h1>
+						<div id="changelog-text">Loading changelog…</div>
+					</div>
+				</div>
+
 				<div id="help" class="window">
 					<div class="header">
 						<button class="lt" aria-label="Toggle channel list"></button>
@@ -848,6 +858,8 @@
 								The Lounge is in version <strong>{{version}}</strong>
 								(<a href="https://github.com/thelounge/lounge/releases/tag/v{{ version }}" target="_blank" rel="noopener">See release notes</a>).<br>
 							{{/if}}
+
+							<button class="btn" id="view-changelog">View changelog</button><br>
 
 							<a href="https://thelounge.github.io/" target="_blank" rel="noopener">Website</a><br>
 							<a href="https://thelounge.github.io/docs/" target="_blank" rel="noopener">Documentation</a><br>

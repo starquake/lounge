@@ -51,6 +51,7 @@
     "irc-framework": "2.8.1",
     "ldapjs": "1.0.1",
     "lodash": "4.17.4",
+    "marked": "0.3.6",
     "moment": "2.18.1",
     "read": "1.0.7",
     "request": "2.81.0",
