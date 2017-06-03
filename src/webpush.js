@@ -49,13 +49,15 @@ class WebPush {
 			client.push.currentCount = 0;
 		}
 
-		client.push.subscriptions.forEach(subscription => {
-			WebPushAPI
-				.sendNotification(subscription, JSON.stringify(payload))
-				.catch(error => {
-					log.error("WebPush Error", error);
-				});
-		});
+		client.push.subscriptions.forEach(subscription => this.pushSingle(client, subscription, payload));
+	}
+
+	pushSingle(client, subscription, payload) {
+		WebPushAPI
+			.sendNotification(subscription, JSON.stringify(payload))
+			.catch(error => {
+				log.error("WebPush Error", error);
+			});
 	}
 }
 

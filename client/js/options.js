@@ -97,42 +97,88 @@ $("#desktopNotifications").on("change", function() {
 	if ($(this).prop("checked") && Notification.permission !== "granted") {
 		Notification.requestPermission(updateDesktopNotificationStatus);
 	}
-
-	if ($(this).prop("checked") && "serviceWorker" in navigator) {
-		navigator.serviceWorker.register("service-worker.js").then(registration => {
-			return registration.pushManager.getSubscription().then(subscription => {
-				if (subscription) {
-					return subscription;
-				}
-
-				return registration.pushManager.subscribe({
-					applicationServerKey: urlBase64ToUint8Array(applicationServerKey),
-					userVisibleOnly: true
-				});
-			});
-		}).then(subscription => {
-			const rawKey = subscription.getKey ? subscription.getKey("p256dh") : "";
-			const key = rawKey ? window.btoa(String.fromCharCode.apply(null, new Uint8Array(rawKey))) : "";
-			const rawAuthSecret = subscription.getKey ? subscription.getKey("auth") : "";
-			const authSecret = rawAuthSecret ? window.btoa(String.fromCharCode.apply(null, new Uint8Array(rawAuthSecret))) : "";
-
-			socket.emit("push:register", {
-				endpoint: subscription.endpoint,
-				keys: {
-					p256dh: key,
-					auth: authSecret
-				}
-			});
-
-			window.alert("Service worker & push subscription registered");
-		}).catch(err => {
-			console.error(err);
-			window.alert(err);
-		});
-	} else {
-		// TODO: Allow unsubscribing
-	}
 });
+
+const pushNotificationsButton = $("#pushNotifications");
+
+function onPushButton() {
+	pushNotificationsButton.attr("disabled", true);
+
+	navigator.serviceWorker.register("service-worker.js").then(registration => {
+		return registration.pushManager.getSubscription().then(existingSubscription => {
+			if (existingSubscription) {
+				const endpoint = existingSubscription.endpoint;
+
+				return existingSubscription.unsubscribe().then(successful => {
+					if (successful) {
+						socket.emit("push:unregister", endpoint);
+
+						alternatePushButton().removeAttr("disabled");
+					}
+				});
+			}
+
+			return registration.pushManager.subscribe({
+				applicationServerKey: urlBase64ToUint8Array(applicationServerKey),
+				userVisibleOnly: true
+			}).then(subscription => {
+				const rawKey = subscription.getKey ? subscription.getKey("p256dh") : "";
+				const key = rawKey ? window.btoa(String.fromCharCode.apply(null, new Uint8Array(rawKey))) : "";
+				const rawAuthSecret = subscription.getKey ? subscription.getKey("auth") : "";
+				const authSecret = rawAuthSecret ? window.btoa(String.fromCharCode.apply(null, new Uint8Array(rawAuthSecret))) : "";
+
+				socket.emit("push:register", {
+					endpoint: subscription.endpoint,
+					keys: {
+						p256dh: key,
+						auth: authSecret
+					}
+				});
+
+				alternatePushButton().removeAttr("disabled");
+			});
+		});
+	}).catch(err => {
+		console.error(err);
+		window.alert(err);
+	});
+
+	return false;
+}
+
+if (location.protocol === "https:" || location.hostname === "localhost" || location.hostname === "127.0.0.1") {
+	$("#pushNotificationsHttps").hide();
+
+	if ("serviceWorker" in navigator) {
+		navigator.serviceWorker.register("service-worker.js").then(registration => {
+			if (!registration.pushManager) {
+				return;
+			}
+
+			return registration.pushManager.getSubscription().then(subscription => {
+				$("#pushNotificationsUnsupported").hide();
+
+				pushNotificationsButton
+					.removeAttr("disabled")
+					.on("click", onPushButton);
+
+				if (subscription) {
+					alternatePushButton();
+				}
+			});
+		}).catch(err => {
+			$("#pushNotificationsUnsupported p").text(err);
+		});
+	}
+}
+
+function alternatePushButton() {
+	const text = pushNotificationsButton.text();
+
+	return pushNotificationsButton
+		.text(pushNotificationsButton.data("text-alternate"))
+		.data("text-alternate", text);
+}
 
 // Updates the checkbox and warning in settings when the Settings page is
 // opened or when the checkbox state is changed.

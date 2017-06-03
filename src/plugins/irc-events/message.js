@@ -98,7 +98,10 @@ module.exports = function(irc, network) {
 		}
 
 		// TODO: For now, do not send notifications if any client is attached
-		if (highlight && client.push.subscriptions.length && _.size(client.attachedClients) === 0) {
+		if (highlight
+		&& (!data.time || data.time > Date.now() - 2.16e+7) // Message not older than 6 hours
+		&& client.push.subscriptions.length
+		&& _.size(client.attachedClients) === 0) {
 			const cleanMessage = data.message.replace(/\x03(?:[0-9]{1,2}(?:,[0-9]{1,2})?)?|[\x00-\x1F]|\x7F/g, "").trim();
 
 			let title = data.nick;

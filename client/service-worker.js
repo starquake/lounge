@@ -11,6 +11,7 @@ self.addEventListener("push", function(event) {
 
 	event.waitUntil(
 		self.registration.showNotification(payload.title, {
+			badge: "img/logo-64.png",
 			icon: "img/touch-icon-192x192.png",
 			body: payload.body,
 			timestamp: payload.timestamp,

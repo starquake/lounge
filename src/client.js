@@ -565,13 +565,15 @@ Client.prototype.registerPushSubscription = function(subscription, noSave) {
 		return;
 	}
 
-	this.push.subscriptions.push({
+	const data = {
 		endpoint: subscription.endpoint,
 		keys: {
 			p256dh: subscription.keys.p256dh,
 			auth: subscription.keys.auth
 		}
-	});
+	};
+
+	this.push.subscriptions.push(data);
 
 	if (!noSave) {
 		this.manager.updateUser(this.name, {
@@ -580,17 +582,27 @@ Client.prototype.registerPushSubscription = function(subscription, noSave) {
 	}
 
 	log.debug(`Subscribed ${this.name} to ${subscription.endpoint}`);
+
+	return data;
 };
 
 Client.prototype.unregisterPushSubscription = function(endpoint) {
+	if (typeof endpoint !== "string" || !/^https?:\/\//.test(endpoint)) {
+		return;
+	}
+
 	const index = _.findIndex(this.push.subscriptions, s => s.endpoint === endpoint);
 
-	if (index > -1) {
-		this.push.subscriptions.splice(index, 1);
-		this.manager.updateUser(this.name, {
-			pushSubscriptions: this.push.subscriptions
-		});
+	if (index < 0) {
+		return;
 	}
+
+	this.push.subscriptions.splice(index, 1);
+	this.manager.updateUser(this.name, {
+		pushSubscriptions: this.push.subscriptions
+	});
+
+	log.debug(`Unsubscribed ${this.name} from ${endpoint}`);
 };
 
 Client.prototype.save = _.debounce(function SaveClient() {

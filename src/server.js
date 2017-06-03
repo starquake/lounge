@@ -262,7 +262,15 @@ function init(socket, client) {
 				return;
 			}
 
-			client.registerPushSubscription(subscription);
+			const registration = client.registerPushSubscription(subscription);
+
+			if (registration) {
+				client.manager.webPush.pushSingle(client, registration, {
+					timestamp: Date.now(),
+					title: "The Lounge",
+					body: "🚀 Push notifications have been enabled"
+				});
+			}
 		});
 
 		socket.on("push:unregister", endpoint => {
