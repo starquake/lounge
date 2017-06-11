@@ -161,6 +161,7 @@ function init(socket, client) {
 	} else {
 		socket.emit("authorized");
 
+		console.log(socket);
 		client.ip = getClientIp(socket.request);
 
 		socket.on("disconnect", function() {
