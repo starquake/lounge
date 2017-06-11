@@ -113,13 +113,14 @@ in ${config.public ? "public" : "private"} mode`);
 	});
 };
 
-function getClientIp(req) {
-	var ip;
+function getClientIp(request) {
+	let ip;
 
 	if (!Helper.config.reverseProxy) {
-		ip = req.connection.remoteAddress;
+		ip = request.connection.remoteAddress;
 	} else {
-		ip = req.headers["x-forwarded-for"] || req.connection.remoteAddress;
+		ip = (request.headers["x-forwarded-for"] || "").split(/\s*,\s*/).filter(Boolean).reverse();
+		ip = ip[0] || request.connection.remoteAddress;
 	}
 
 	return ip.replace(/^::ffff:/, "");
